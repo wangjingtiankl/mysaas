@@ -6,6 +6,7 @@ import RegisterView from '../views/RegisterView.vue';
 import DashboardView from '../views/DashboardView.vue';
 
 // 路由守卫
+// 如果用户未登录，则重定向到登录页
 const requireAuth = (to, from, next) => {
     if (!localStorage.getItem('accessToken')) {
         next({ name: 'Login' }); // 如果没有 token, 跳转到登录页
@@ -14,11 +15,22 @@ const requireAuth = (to, from, next) => {
     }
 };
 
+// "访客" 守卫
+// 如果用户已登录，则重定向到后台主页
+const requireGuest = (to, from, next) => {
+    if (localStorage.getItem('accessToken')) {
+        next({ name: 'Dashboard' });
+    } else {
+        next();
+    }
+};
+
 const routes = [
     {
         path: '/',
-        name: 'home',
-        component: HomeView
+        name: 'Home',
+        component: LoginView,
+        beforeEnter: requireGuest,
     },
     {
         path: '/p/:slug',
@@ -29,12 +41,14 @@ const routes = [
     {
         path: '/login',
         name: 'Login',
-        component: LoginView
+        component: LoginView,
+        beforeEnter: requireGuest,
     },
     {
         path: '/register',
         name: 'Register',
-        component: RegisterView
+        component: RegisterView,
+        beforeEnter: requireGuest,
     },
     {
         path: '/dashboard',

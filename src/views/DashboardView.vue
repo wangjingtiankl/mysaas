@@ -14,9 +14,15 @@
     <main v-if="!isLoading && !error" class="content-grid">
       <!-- Section 1: 落地页配置 -->
       <section class="card">
-        <h2><span class="icon">📄</span> 落地页配置</h2>
+        <div class="card-header">
+          <h2>
+            <span class="icon">📄</span> 落地页配置
+          </h2>
+          <button @click="previewPage" :disabled="!pageData.page_slug" class="preview-btn">
+            👁️ 预览页面
+          </button>
+        </div>
 
-        <!-- ... (此部分与上一版相同，保持不变) ... -->
         <div class="form-group">
           <label for="pageSlug">页面路径 (Slug)</label>
           <input id="pageSlug" v-model="pageData.page_slug" type="text" placeholder="例如: my-cool-shop">
@@ -296,6 +302,16 @@ const deleteMaterial = async (id) => {
   }
 };
 
+const previewPage = () => {
+  if (pageData.value && pageData.value.page_slug) {
+    // pageUrl 是我们之前创建的计算属性，它已经包含了完整的 URL
+    // window.open(url, '_blank') 会在新标签页中打开链接
+    window.open(pageUrl.value, '_blank');
+  } else {
+    alert('请先设置并保存页面路径 (Slug)，然后才能预览。');
+  }
+};
+
 // --- 通用方法 ---
 const handleLogout = () => {
   localStorage.removeItem('accessToken');
@@ -436,11 +452,35 @@ const handleLogout = () => {
   font-weight: 500;
 }
 
-/* 新增样式 */
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 1.5rem; /* 为标题和内容之间增加一些间距 */
+}
+
+.card-header h2 {
+  margin: 0;
+}
+
+.preview-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.preview-btn:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.preview-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
 .empty-state {
