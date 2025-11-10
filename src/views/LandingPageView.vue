@@ -104,7 +104,7 @@ import { useRouter } from 'vue-router';
 import axios from 'axios';
 
 // --- 基本配置 ---
-const API_BASE_URL = 'https://1259010340-65dsv2iaxk.ap-chengdu.tencentscf.com/page/${slug}';
+const API_BASE_URL = 'https://1259010340-65dsv2iaxk.ap-chengdu.tencentscf.com';
 const router = useRouter();
 
 // --- 状态管理 ---
@@ -173,7 +173,7 @@ const fetchData = async () => {
   isLoading.value = true;
   error.value = null;
   try {
-    const response = await apiClient.get('/api/page');
+    const response = await axios.get(`${API_BASE_URL}/page/${slug}`);
     // 做一个安全处理，防止后端返回null
     if (response.data.config_json === null) {
       response.data.config_json = { shopInfo: {}, buttons: [] };
