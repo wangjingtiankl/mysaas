@@ -1,9 +1,9 @@
 ﻿import { createRouter, createWebHashHistory } from 'vue-router'
 import LandingPageView from '../views/LandingPageView.vue'
-import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
-import DashboardView from '../views/DashboardView.vue';
+import MerchantAdminView from '../views/MerchantAdminView.vue';
+import MerchantDashboardHomeView from "../views/MerchantDashboardHomeView.vue";
 
 // 路由守卫
 // 如果用户未登录，则重定向到登录页
@@ -19,7 +19,7 @@ const requireAuth = (to, from, next) => {
 // 如果用户已登录，则重定向到后台主页
 const requireGuest = (to, from, next) => {
     if (localStorage.getItem('accessToken')) {
-        next({ name: 'Dashboard' });
+        next({ name: 'DashboardHome' });
     } else {
         next();
     }
@@ -37,7 +37,6 @@ const routes = [
         name: 'landing',
         component: LandingPageView
     },
-    // 新增商家后台路由
     {
         path: '/login',
         name: 'Login',
@@ -52,8 +51,14 @@ const routes = [
     },
     {
         path: '/dashboard',
-        name: 'Dashboard',
-        component: DashboardView,
+        name: 'DashboardHome',
+        component: MerchantDashboardHomeView,
+        beforeEnter: requireAuth,
+    },
+    {
+        path: '/admin/page/:slug',
+        name: 'MerchantAdmin',
+        component: MerchantAdminView,
         beforeEnter: requireAuth // 在进入此路由前执行 requireAuth 守卫
     }
 ]

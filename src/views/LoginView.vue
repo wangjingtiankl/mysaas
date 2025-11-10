@@ -10,6 +10,7 @@
     <p>还没有账号？<router-link to="/register">立即注册</router-link></p>
   </div>
 </template>
+
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -18,6 +19,7 @@ const router = useRouter();
 const username = ref('');
 const password = ref('');
 const error = ref('');
+
 const handleLogin = async () => {
   try {
     const response = await axios.post('https://1259010340-65dsv2iaxk.ap-chengdu.tencentscf.com/auth/login', {
