@@ -22,10 +22,29 @@
       </header>
 
       <section class="buttons-grid">
-        <a v-for="(button, index) in buttons" :key="index" :href="button.url" class="action-button" target="_blank" rel="noopener noreferrer">
-          <span class="button-icon">{{ getIconForType(button.type) }}</span>
-          <span class="button-label">{{ button.label }}</span>
-        </a>
+        <div v-for="(button, index) in buttons" :key="inadex">
+          <button
+              v-if="button.url === '#douyin_share'"
+              @click="handleDouyinShare"
+              class="action-button"
+              :disabled="isDouyinLoading"
+          >
+            <span class="button-icon">{{ getButtonIcon(button) }}</span>
+            <span class="button-label">{{ isDouyinLoading ? '生成中...' : button.label }}</span>
+          </button>
+
+          <!-- 否则，渲染普通的 <a> 链接按钮 -->
+          <a
+              v-else
+              :href="button.url"
+              class="action-button"
+              target="_blank"
+              rel="noopener noreferrer"
+          >
+            <span class="button-icon">{{ getButtonIcon(button) }}</span>
+            <span class="button-label">{{ button.label }}</span>
+          </a>
+        </div>
       </section>
 
       <footer class="page-footer">
@@ -48,12 +67,14 @@ const route = useRoute();
 const pageData = ref(null);
 const isLoading = ref(true);
 const error = ref(null);
+const isDouyinLoading = ref(false);
 
-// --- 计算属性，简化模板中的访问 ---
+// --- 计算属性 ---
 const shopInfo = computed(() => pageData.value?.shopInfo || {});
 const buttons = computed(() => pageData.value?.buttons || []);
 
 // --- 方法 ---
+
 const fetchPageData = async () => {
   isLoading.value = true;
   error.value = null;
@@ -66,25 +87,15 @@ const fetchPageData = async () => {
   }
 
   try {
-    // 注意：这个接口是公开的，不需要 token，所以直接用 axios 即可
     const response = await axios.get(`${API_BASE_URL}/page/${slug}`);
-
-    // 后端返回的数据可能直接就是 config_json，也可能是包含 config_json 的对象
-    // 根据你的后端代码 app.get('/page/:slug', ...) 它直接返回了 config_json
     const config = response.data;
-
-    // 做一个安全校验，确保返回的是一个对象
     if (typeof config !== 'object' || config === null) {
       throw new Error('店铺配置信息格式不正确。');
     }
-
     pageData.value = config;
-
-    // 动态设置页面标题
     if (pageData.value.shopInfo?.name) {
       document.title = pageData.value.shopInfo.name;
     }
-
   } catch (err) {
     if (err.response?.status === 404) {
       error.value = '该店铺不存在或已关闭。';
@@ -97,15 +108,44 @@ const fetchPageData = async () => {
   }
 };
 
-// 根据按钮类型返回一个 emoji 图标，增加趣味性
-const getIconForType = (type) => {
-  switch (type) {
-    case 'payment': return '💰';
-    case 'review': return '🌟';
-    case 'social': return '📱';
-    case 'wifi': return '📶';
-    default: return '🔗';
+const handleDouyinShare = async () => {
+  if (isDouyinLoading.value) return;
+  isDouyinLoading.value = true;
+  const slug = route.params.slug;
+
+  try {
+    const response = await axios.get(`${API_BASE_URL}/share/douyin/${slug}`);
+    const deepLink = response.data.deepLink;
+    if (deepLink) {
+      window.location.href = deepLink;
+    } else {
+      throw new Error('未能获取到有效的分享链接。');
+    }
+  } catch (err) {
+    console.error('Failed to generate Douyin share link:', err);
+    const errorMessage = err.response?.data?.error || '生成分享链接失败，请稍后重试。';
+    alert(errorMessage);
+  } finally {
+    isDouyinLoading.value = false;
   }
+};
+
+const getButtonIcon = (button) => {
+  if (button.url === '#douyin_share') {
+    return '🎥'; // 抖音分享图标
+  }
+  // 你可以根据 button.label 的内容来猜测图标，但这并不稳定
+  if (button.label.includes('买单') || button.label.includes('支付')) {
+    return '💰';
+  }
+  if (button.label.includes('评价')) {
+    return '🌟';
+  }
+  if (button.label.includes('WiFi') || button.label.includes('WIFI')) {
+    return '📶';
+  }
+  // 如果都匹配不上，返回一个默认图标
+  return '🔗';
 };
 
 // --- 生命周期钩子 ---
@@ -242,4 +282,11 @@ onMounted(() => {
   font-size: 0.8rem;
   color: #aaa;
 }
+
+.action-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 </style>
